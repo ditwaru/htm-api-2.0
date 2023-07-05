@@ -1,21 +1,15 @@
 import { JSONResponses } from "@libs/api-gateway";
 import { IAuthenticateAdmin } from "./schema";
 import { getToken } from "./service";
+import { decodeEvent } from "@functions/utils/functions";
 
-export const authenticateAdminHandler = async (event: IAuthenticateAdmin) => {
-  const getBody = () => {
-    try {
-      return JSON.parse(event.body as unknown as string);
-    } catch (error) {
-      const decoded = Buffer.from(event.body as unknown as string, "base64").toString();
-      if (typeof decoded === "string") {
-        return JSON.parse(decoded);
-      }
-      return decoded;
-    }
-  };
+export const authenticateAdminHandler = async (possiblyEncodedEvent: IAuthenticateAdmin) => {
+  let event = possiblyEncodedEvent;
+  if (possiblyEncodedEvent.isBase64Encoded) {
+    event = decodeEvent(possiblyEncodedEvent);
+  }
   try {
-    const body = getBody();
+    const body = JSON.parse(event.body as unknown as string);
     const { access_token } = await getToken(body);
 
     return JSONResponses.ok(access_token);

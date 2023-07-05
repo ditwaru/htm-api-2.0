@@ -6,14 +6,14 @@ import { v4 as uuid } from "uuid";
 import { getPartsFromFormData } from "./parts";
 import { getMultipleImagesFromFormData } from "./parts";
 
-const { BUCKET_NAME } = process.env;
+const { BUCKET_NAME, REGION } = process.env;
 
 export const processMultiPartForm = async (event: APIGatewayProxyEvent, partsToExtract: string[]) => {
-  try {
-    const { fileName, buffer, contentType, ...everythingElse } = getPartsFromFormData(event, partsToExtract);
-    const id = uuid();
-    const key = `images/posts/${id}-${fileName}`;
+  const { fileName, buffer, contentType, ...everythingElse } = getPartsFromFormData(event, partsToExtract);
+  const id = uuid();
+  const key = `images/posts/${id}-${fileName}`;
 
+  try {
     const params = {
       Bucket: BUCKET_NAME,
       Key: key,
@@ -22,11 +22,11 @@ export const processMultiPartForm = async (event: APIGatewayProxyEvent, partsToE
     };
 
     const upload = new Upload({
-      client: new S3Client({}),
+      client: new S3Client({ region: REGION }),
       params,
     });
     await upload.done();
-    const imageUrl = `https://${BUCKET_NAME}.s3.amazonaws.com/${key}`;
+    const imageUrl = `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${key}`;
     return {
       imageUrl,
       ...everythingElse,
@@ -37,6 +37,7 @@ export const processMultiPartForm = async (event: APIGatewayProxyEvent, partsToE
 };
 
 export const processBulkImages = async (event: APIGatewayProxyEvent, about = false) => {
+  console.log({ event });
   const images = getMultipleImagesFromFormData(event);
   return Promise.all(
     images.map(async ({ fileName, contentType, buffer }) => {
@@ -51,7 +52,7 @@ export const processBulkImages = async (event: APIGatewayProxyEvent, about = fal
       };
 
       const upload = new Upload({
-        client: new S3Client({}),
+        client: new S3Client({ region: REGION }),
         params,
       });
       await upload.done();

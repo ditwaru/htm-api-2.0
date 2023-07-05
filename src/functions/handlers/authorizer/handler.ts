@@ -1,32 +1,32 @@
 import { JSONResponses } from "@libs/api-gateway";
-import { IValidateJWT } from "./schema";
+import { IAuthorizer, IValidateJWT } from "./schema";
 import { authenticateToken } from "./service";
+import { IAMPolicyBuilder } from "@functions/utils/IAMPolicyBuilder";
 
-export const validateJWTHandler = async (event: IValidateJWT) => {
+export const jwtAuthorizer = async (event: IAuthorizer, context, callback) => {
   try {
-    const { headers } = event;
-    const payload = await authenticateToken(headers.Authorization);
+    const methodArn = event.methodArn;
+    const token = event.authorizationToken;
+    const payload = await authenticateToken(token);
     const today = new Date().getTime();
     const expiration = payload.exp * 1000; // js dates use milliseconds
     if (expiration < today) {
       throw new Error("expired token");
     }
-
-    return {
-      principalId: payload.username, // The principal user identification associated with the token sent by the client.
-      policyDocument: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Action: "execute-api:Invoke",
-            Effect: "Allow",
-            Resource: "*",
-          },
-        ],
-      },
-    };
+    const policy = IAMPolicyBuilder({ userId: payload.username, effect: "Allow", methodArn });
+    callback(null, policy);
   } catch (err) {
     console.error(err);
-    return JSONResponses.unauthorized({ message: "User has not been authorized." });
+    callback("Unauthorized");
+  }
+};
+
+export const validateJWTHandler = async (event: IValidateJWT) => {
+  // this function does nothing except call the jwtAuthorizer and return 200 or 403
+  try {
+    return JSONResponses.ok();
+  } catch (err) {
+    console.error(err);
+    return JSONResponses.forbidden("owo");
   }
 };

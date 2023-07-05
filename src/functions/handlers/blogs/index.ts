@@ -4,10 +4,7 @@ const getBlogs = {
   handler: `${handlerPath(__dirname)}/handler.getBlogsHandler`,
   events: [
     {
-      http: {
-        method: "get",
-        path: "blogs",
-      },
+      http: { cors: true, method: "get", path: "blogs" },
     },
   ],
 };
@@ -17,10 +14,11 @@ const postBlogs = {
   events: [
     {
       http: {
+        cors: true,
         method: "post",
         path: "blogs",
         authorizer: {
-          name: "validateJWT",
+          name: "jwtAuthorizer",
         },
       },
     },
@@ -32,10 +30,11 @@ const putBlogs = {
   events: [
     {
       http: {
+        cors: true,
         method: "put",
         path: "blogs/{id}",
         authorizer: {
-          name: "validateJWT",
+          name: "jwtAuthorizer",
         },
         request: {
           parameters: {
@@ -54,6 +53,7 @@ const getBlogById = {
   events: [
     {
       http: {
+        cors: true,
         method: "get",
         path: "blogs/{id}",
         request: {
@@ -73,10 +73,11 @@ const deleteBlog = {
   events: [
     {
       http: {
+        cors: true,
         method: "delete",
         path: "blogs/{id}",
         authorizer: {
-          name: "validateJWT",
+          name: "jwtAuthorizer",
         },
         request: {
           parameters: {

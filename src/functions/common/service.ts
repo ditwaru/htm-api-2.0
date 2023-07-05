@@ -13,7 +13,7 @@ import { v4 as uuid } from "uuid";
 import { IPostBlogs, IPutBlogs } from "@functions/handlers/blogs/schema";
 import { IPostCalendarEvents, IPutCalendarEvents } from "@functions/handlers/events/schema";
 import { processMultiPartForm } from "@functions/utils/formHandler/formHandler";
-import { slugifyTitle, getPublishedDate } from "@functions/utils/functions";
+import { slugifyTitle, getPublishedDate, decodeEvent } from "@functions/utils/functions";
 import { DEFAULT_PAGE_NUMBER } from "@functions/utils/globals";
 
 const { REGION, DB_NAME } = process.env;
@@ -58,11 +58,18 @@ export const deleteCommon = async (id: string, category: string) => {
   return Attributes;
 };
 
-export const writeToDB = async (event: IWriteToDB, category: string, partsToExtract: string[]) => {
+export const writeToDB = async (possiblyEncodedEvent: IWriteToDB, category: string, partsToExtract: string[]) => {
+  let event = possiblyEncodedEvent;
+  if (possiblyEncodedEvent.isBase64Encoded) {
+    event = decodeEvent(possiblyEncodedEvent);
+  }
   const getId = () => event.pathParameters?.id || uuid();
 
   const getElementsForDB = async () => {
-    if (event.headers["Content-Type"].includes("multipart/form-data")) {
+    if (
+      event.headers["Content-Type"]?.includes("multipart/form-data") ||
+      event.headers["content-type"]?.includes("multipart/form-data")
+    ) {
       // there is an image
       return await processMultiPartForm(event, partsToExtract);
     }
@@ -72,6 +79,8 @@ export const writeToDB = async (event: IWriteToDB, category: string, partsToExtr
   };
 
   const elements = await getElementsForDB();
+  console.log(elements.published);
+  console.log({ changedDate: getPublishedDate(elements.published) });
   Object.assign(elements, {
     slug: slugifyTitle(elements.title),
     published: getPublishedDate(elements.published),

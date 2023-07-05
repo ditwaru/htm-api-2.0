@@ -1,6 +1,10 @@
 const formatJSONResponse = (statusCode: number, response?: unknown) => {
   const returnObj = {
     statusCode,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": true,
+    },
   };
   if (response) {
     Object.assign(returnObj, {

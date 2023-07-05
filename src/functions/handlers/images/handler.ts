@@ -8,7 +8,7 @@ export const getAllImagesHandler = async () => {
     return JSONResponses.ok(data);
   } catch (err) {
     console.error(err);
-    return JSONResponses.badRequest({ message: "An error occurred getting the about page." });
+    return JSONResponses.badRequest({ message: "An error occurred getting the images." });
   }
 };
 

@@ -5,10 +5,11 @@ const getAllImages = {
   events: [
     {
       http: {
+        cors: true,
         method: "get",
         path: "images",
         authorizer: {
-          name: "validateJWT",
+          name: "jwtAuthorizer",
         },
       },
     },
@@ -19,10 +20,11 @@ const postImages = {
   events: [
     {
       http: {
+        cors: true,
         method: "post",
         path: "images",
         authorizer: {
-          name: "validateJWT",
+          name: "jwtAuthorizer",
         },
       },
     },
@@ -33,10 +35,11 @@ const postAboutImages = {
   events: [
     {
       http: {
+        cors: true,
         method: "post",
         path: "images/about",
         authorizer: {
-          name: "validateJWT",
+          name: "jwtAuthorizer",
         },
       },
     },

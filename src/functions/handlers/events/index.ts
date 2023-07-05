@@ -4,10 +4,7 @@ const getCalendarEvents = {
   handler: `${handlerPath(__dirname)}/handler.getCalendarEventsHandler`,
   events: [
     {
-      http: {
-        method: "get",
-        path: "events",
-      },
+      http: { cors: true, method: "get", path: "events" },
     },
   ],
 };
@@ -17,10 +14,11 @@ const postCalendarEvents = {
   events: [
     {
       http: {
+        cors: true,
         method: "post",
         path: "events",
         authorizer: {
-          name: "validateJWT",
+          name: "jwtAuthorizer",
         },
       },
     },
@@ -32,10 +30,11 @@ const putCalendarEvents = {
   events: [
     {
       http: {
+        cors: true,
         method: "put",
         path: "events/{id}",
         authorizer: {
-          name: "validateJWT",
+          name: "jwtAuthorizer",
         },
         request: {
           parameters: {
@@ -54,6 +53,7 @@ const getCalendarEventById = {
   events: [
     {
       http: {
+        cors: true,
         method: "get",
         path: "events/{id}",
         request: {
@@ -73,10 +73,11 @@ const deleteCalendarEvent = {
   events: [
     {
       http: {
+        cors: true,
         method: "delete",
         path: "events/{id}",
         authorizer: {
-          name: "validateJWT",
+          name: "jwtAuthorizer",
         },
         request: {
           parameters: {

@@ -19,24 +19,12 @@ interface IParsedMultiPart {
 }
 
 const getBoundary = (event: APIGatewayProxyEvent) => {
-  let contentType = event.headers["Content-Type"];
+  let contentType = event.headers["Content-Type"] || event.headers["content-type"];
   const contentTypeArray = contentType.split(";").map((item) => item.trim());
   const boundaryPrefix = "boundary=";
   let boundary = contentTypeArray.find((item) => item.startsWith(boundaryPrefix));
   if (!boundary) return null;
   return boundary.slice(boundaryPrefix.length);
-};
-
-const getEventBody = (event: APIGatewayProxyEvent) => {
-  if (event.isBase64Encoded) {
-    return decodeBase64MultiPart(event.body);
-  }
-  return event.body;
-};
-
-const decodeBase64MultiPart = (str: string): string => {
-  const buffer = Buffer.from(str, "base64");
-  return buffer.toString("binary");
 };
 
 const findImageFromMultiPart = (str: string) => {
@@ -80,8 +68,7 @@ const formPartsToJSON = (formData: string[], propertiesToExtract: string[]): IPa
 
 const splitEventBody = (event: APIGatewayProxyEvent) => {
   const boundary = getBoundary(event);
-  const eventBody = getEventBody(event);
-  return eventBody.split(boundary);
+  return event.body.split(boundary);
 };
 
 export const getPartsFromFormData = (event: APIGatewayProxyEvent, partsToExtract: string[]): IBufferReturn => {

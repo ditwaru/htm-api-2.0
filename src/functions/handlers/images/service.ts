@@ -1,11 +1,6 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
-import {
-  DynamoDB,
-  TransactWriteItemsCommand,
-  TransactWriteItemsCommandInput,
-  TransactWriteItemsCommandOutput,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDB, TransactWriteItemsCommand, TransactWriteItemsCommandInput } from "@aws-sdk/client-dynamodb";
 import { v4 as uuid } from "uuid";
 import { processBulkImages } from "@functions/utils/formHandler/formHandler";
 import { ABOUT } from "@functions/utils/globals";
@@ -13,7 +8,7 @@ import { ABOUT } from "@functions/utils/globals";
 const { BUCKET_NAME, DB_NAME, REGION } = process.env;
 
 export const getAllImages = async () => {
-  const client = new S3Client({});
+  const client = new S3Client({ region: REGION });
   const command: ListObjectsV2Command = new ListObjectsV2Command({
     Bucket: BUCKET_NAME,
   });

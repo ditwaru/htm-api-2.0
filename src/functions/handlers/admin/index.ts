@@ -4,10 +4,7 @@ const authenticateAdmin = {
   handler: `${handlerPath(__dirname)}/handler.authenticateAdminHandler`,
   events: [
     {
-      http: {
-        method: "post",
-        path: "admin",
-      },
+      http: { cors: true, method: "post", path: "admin" },
     },
   ],
 };

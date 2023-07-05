@@ -19,7 +19,7 @@ const serverlessConfiguration: AWS = {
       authorizers: {
         customAuthorizer: {
           type: "request",
-          functionName: "validateJWT",
+          functionName: "jwtAuthorizer",
           enableSimpleResponses: false,
           payloadVersion: "1.0",
         },
@@ -40,7 +40,7 @@ const serverlessConfiguration: AWS = {
           {
             Effect: "Allow",
             Action: ["s3:*"],
-            Resource: `arn:aws:s3:::htm-serverless-dev-htmpictures-mvnnaus6br74/*`,
+            Resource: `arn:aws:s3:::htm-serverless-dev-htmpictures-ccew211tm1op/*`,
           },
         ],
       },
@@ -96,6 +96,19 @@ const serverlessConfiguration: AWS = {
       },
       HtmPictures: {
         Type: "AWS::S3::Bucket",
+      },
+      GatewayResponseDefault4xx: {
+        Type: "AWS::ApiGateway::GatewayResponse",
+        Properties: {
+          ResponseParameters: {
+            "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+            "gatewayresponse.header.Access-Control-Allow-Headers": "'*'",
+          },
+          ResponseType: "DEFAULT_4XX",
+          RestApiId: {
+            Ref: "ApiGatewayRestApi",
+          },
+        },
       },
     },
   },

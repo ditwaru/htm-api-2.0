@@ -5,3 +5,8 @@ export interface IValidateJWT extends APIGatewayProxyEvent {
     Authorization: string;
   };
 }
+
+export interface IAuthorizer extends APIGatewayProxyEvent {
+  methodArn: string;
+  authorizationToken?: string;
+}
