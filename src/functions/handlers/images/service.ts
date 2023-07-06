@@ -27,10 +27,7 @@ export const getAllImages = async () => {
 };
 
 export const postImages = async (possiblyEncodedEvent: APIGatewayProxyEvent, about = false) => {
-  let event = possiblyEncodedEvent;
-  if (possiblyEncodedEvent.isBase64Encoded) {
-    event = decodeEvent(possiblyEncodedEvent);
-  }
+  const event = decodeEvent(possiblyEncodedEvent);
   const eventBody: { images: { imageFile: string; fileName: string; contentType: string }[] } = JSON.parse(event.body);
   const imageUrlArray = await Promise.all(
     eventBody.images.map(async ({ imageFile, fileName, contentType }) => {

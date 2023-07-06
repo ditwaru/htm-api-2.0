@@ -21,10 +21,13 @@ export const getMatching = (str: string, regex: RegExp) => {
 };
 
 export const decodeEvent = (event: any) => {
-  const decodedBody = Buffer.from(event.body, "base64").toString();
-  return {
-    ...event,
-    body: decodedBody,
-    isBase64Encoded: false,
-  };
+  if (event.isBase64Encoded) {
+    const decodedBody = Buffer.from(event.body, "base64").toString();
+    return {
+      ...event,
+      body: decodedBody,
+      isBase64Encoded: false,
+    };
+  }
+  return event;
 };

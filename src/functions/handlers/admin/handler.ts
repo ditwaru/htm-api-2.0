@@ -4,10 +4,7 @@ import { getToken } from "./service";
 import { decodeEvent } from "@functions/utils/functions";
 
 export const authenticateAdminHandler = async (possiblyEncodedEvent: IAuthenticateAdmin) => {
-  let event = possiblyEncodedEvent;
-  if (possiblyEncodedEvent.isBase64Encoded) {
-    event = decodeEvent(possiblyEncodedEvent);
-  }
+  const event = decodeEvent(possiblyEncodedEvent);
   try {
     const body = JSON.parse(event.body as unknown as string);
     const { access_token } = await getToken(body);

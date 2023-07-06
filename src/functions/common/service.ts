@@ -60,10 +60,7 @@ export const deleteCommon = async (id: string, category: string) => {
 };
 
 export const writeToDB = async (possiblyEncodedEvent: IWriteToDB, category: string, partsToExtract: string[]) => {
-  let event = possiblyEncodedEvent;
-  if (possiblyEncodedEvent.isBase64Encoded) {
-    event = decodeEvent(possiblyEncodedEvent);
-  }
+  const event = decodeEvent(possiblyEncodedEvent);
   const getId = () => event.pathParameters?.id || uuid();
 
   const getElementsForDB = async () => {
@@ -104,10 +101,7 @@ export const writeToDB = async (possiblyEncodedEvent: IWriteToDB, category: stri
 };
 
 export const writeToDBv2 = async (possiblyEncodedEvent: IWriteToDB, category: string) => {
-  let event = possiblyEncodedEvent;
-  if (possiblyEncodedEvent.isBase64Encoded) {
-    event = decodeEvent(possiblyEncodedEvent);
-  }
+  const event = decodeEvent(possiblyEncodedEvent);
 
   const getId = () => event.pathParameters?.id || uuid();
 
