@@ -9,12 +9,8 @@ export const slugifyTitle = (title: string) => {
   return slug;
 };
 
-export const getPublishedDate = (date?: number) => {
-  let dateNumber = date;
-  if (typeof date === "string") {
-    dateNumber = +date;
-  }
-  return date != null ? new Date(dateNumber).getTime().toString() : new Date().getTime().toString();
+export const getPublishedDate = (date: string) => {
+  return date.length ? new Date(+date).getTime().toString() : new Date().getTime().toString();
 };
 
 export const getMatching = (str: string, regex: RegExp) => {

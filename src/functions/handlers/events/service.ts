@@ -1,4 +1,4 @@
-import { deleteCommon, getCommonById, getCommonQuery, getPagination, writeToDB } from "@functions/common/service";
+import { deleteCommon, getCommonById, getCommonQuery, getPagination, writeToDBv2 } from "@functions/common/service";
 import { EVENTS } from "@functions/utils/globals";
 import { IPostCalendarEvents, IPutCalendarEvents } from "./schema";
 import { APIGatewayProxyEventQueryStringParameters } from "aws-lambda";
@@ -18,9 +18,9 @@ export const deleteCalendarEvent = async (id: string) => {
 };
 
 export const postCalendarEvent = async (event: IPostCalendarEvents) => {
-  return writeToDB(event, EVENTS, ["title", "content", "date"]);
+  return writeToDBv2(event, EVENTS);
 };
 
 export const putCalendarEvent = async (event: IPutCalendarEvents) => {
-  return writeToDB(event, EVENTS, ["title", "content", "date"]);
+  return writeToDBv2(event, EVENTS);
 };

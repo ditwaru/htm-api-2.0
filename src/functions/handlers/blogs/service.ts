@@ -1,4 +1,4 @@
-import { deleteCommon, getCommonById, getCommonQuery, getPagination, writeToDB } from "@functions/common/service";
+import { deleteCommon, getCommonById, getCommonQuery, getPagination, writeToDBv2 } from "@functions/common/service";
 import { BLOGS } from "@functions/utils/globals";
 import { IPostBlogs, IPutBlogs } from "./schema";
 import { APIGatewayProxyEventQueryStringParameters } from "aws-lambda";
@@ -18,9 +18,9 @@ export const deleteBlog = async (id: string) => {
 };
 
 export const postBlogs = async (event: IPostBlogs) => {
-  return writeToDB(event, BLOGS, ["title", "content", "published"]);
+  return writeToDBv2(event, BLOGS);
 };
 
 export const putBlogs = async (event: IPutBlogs) => {
-  return writeToDB(event, BLOGS, ["title", "content", "published"]);
+  return writeToDBv2(event, BLOGS);
 };

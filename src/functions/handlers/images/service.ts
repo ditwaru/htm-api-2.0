@@ -1,14 +1,16 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, PutObjectCommandInput, PutObjectCommand } from "@aws-sdk/client-s3";
 import { DynamoDB, TransactWriteItemsCommand, TransactWriteItemsCommandInput } from "@aws-sdk/client-dynamodb";
 import { v4 as uuid } from "uuid";
-import { processBulkImages } from "@functions/utils/formHandler/formHandler";
 import { ABOUT } from "@functions/utils/globals";
+import { decodeEvent } from "@functions/utils/functions";
 
 const { BUCKET_NAME, DB_NAME, REGION } = process.env;
 
+const s3Client = new S3Client({ region: REGION });
+const dynamoDbClient = new DynamoDB({ region: REGION });
+
 export const getAllImages = async () => {
-  const client = new S3Client({ region: REGION });
   const command: ListObjectsV2Command = new ListObjectsV2Command({
     Bucket: BUCKET_NAME,
   });
@@ -16,7 +18,7 @@ export const getAllImages = async () => {
   let isTruncated = true;
   const contents = [];
   while (isTruncated) {
-    const { Contents, IsTruncated, NextContinuationToken } = await client.send(command);
+    const { Contents, IsTruncated, NextContinuationToken } = await s3Client.send(command);
     Contents?.forEach((c) => contents.push(c.Key));
     isTruncated = IsTruncated;
     command.input.ContinuationToken = NextContinuationToken;
@@ -24,12 +26,20 @@ export const getAllImages = async () => {
   return contents;
 };
 
-export const postImages = async (event: APIGatewayProxyEvent, about = false) => {
-  const imageUrlArray = await processBulkImages(event, about); // posts to S3
+export const postImages = async (possiblyEncodedEvent: APIGatewayProxyEvent, about = false) => {
+  let event = possiblyEncodedEvent;
+  if (possiblyEncodedEvent.isBase64Encoded) {
+    event = decodeEvent(possiblyEncodedEvent);
+  }
+  const eventBody: { images: { imageFile: string; fileName: string; contentType: string }[] } = JSON.parse(event.body);
+  const imageUrlArray = await Promise.all(
+    eventBody.images.map(async ({ imageFile, fileName, contentType }) => {
+      return await uploadImageToS3(imageFile, fileName, contentType, about);
+    })
+  );
 
   if (about) {
     // post to dynamo
-    const client = new DynamoDB({ region: REGION });
     const params: TransactWriteItemsCommandInput = {
       TransactItems: imageUrlArray.map((url) => ({
         Put: {
@@ -42,6 +52,29 @@ export const postImages = async (event: APIGatewayProxyEvent, about = false) => 
         },
       })),
     };
-    await client.send(new TransactWriteItemsCommand(params));
+    await dynamoDbClient.send(new TransactWriteItemsCommand(params));
   }
+};
+
+export const uploadImageToS3 = async (
+  imageFile: string,
+  fileName: string,
+  contentType: string,
+  about: boolean = false
+) => {
+  if (!imageFile) return null;
+  const id = uuid();
+  const key = `images/${about ? "about" : "posts"}/${id}-${fileName}`;
+
+  const buffer = Buffer.from(imageFile, "base64");
+
+  const params: PutObjectCommandInput = {
+    Bucket: BUCKET_NAME,
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+  };
+
+  await s3Client.send(new PutObjectCommand(params));
+  return `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${key}`;
 };

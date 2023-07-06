@@ -15,6 +15,7 @@ import { IPostCalendarEvents, IPutCalendarEvents } from "@functions/handlers/eve
 import { processMultiPartForm } from "@functions/utils/formHandler/formHandler";
 import { slugifyTitle, getPublishedDate, decodeEvent } from "@functions/utils/functions";
 import { DEFAULT_PAGE_NUMBER } from "@functions/utils/globals";
+import { uploadImageToS3 } from "@functions/handlers/images/service";
 
 const { REGION, DB_NAME } = process.env;
 const client = new DynamoDB({ region: REGION });
@@ -79,8 +80,6 @@ export const writeToDB = async (possiblyEncodedEvent: IWriteToDB, category: stri
   };
 
   const elements = await getElementsForDB();
-  console.log(elements.published);
-  console.log({ changedDate: getPublishedDate(elements.published) });
   Object.assign(elements, {
     slug: slugifyTitle(elements.title),
     published: getPublishedDate(elements.published),
@@ -94,6 +93,45 @@ export const writeToDB = async (possiblyEncodedEvent: IWriteToDB, category: stri
   for (const element in elements) {
     if (!elements[element]) continue;
     Item[element] = { S: elements[element] };
+  }
+
+  const params = {
+    TableName: DB_NAME,
+    Item,
+  };
+
+  return client.send(new PutItemCommand(params));
+};
+
+export const writeToDBv2 = async (possiblyEncodedEvent: IWriteToDB, category: string) => {
+  let event = possiblyEncodedEvent;
+  if (possiblyEncodedEvent.isBase64Encoded) {
+    event = decodeEvent(possiblyEncodedEvent);
+  }
+
+  const getId = () => event.pathParameters?.id || uuid();
+
+  const body = JSON.parse(event.body as unknown as string);
+  const { title, imageFile, content, date, published, imageUrl, fileName, contentType } = body;
+
+  const Item = {
+    id: { S: getId() },
+    title: { S: title },
+    content: { S: content },
+    date: { S: date },
+    slug: { S: slugifyTitle(title) },
+    published: { S: getPublishedDate(published) },
+    category: { S: category },
+  };
+
+  if (imageUrl.length) {
+    Object.assign(Item, {
+      imageUrl: { S: imageUrl },
+    });
+  } else if (imageFile) {
+    Object.assign(Item, {
+      imageUrl: { S: await uploadImageToS3(imageFile, fileName, contentType) },
+    });
   }
 
   const params = {
