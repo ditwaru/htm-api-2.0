@@ -2,6 +2,7 @@ import { JSONResponses } from "@libs/api-gateway";
 import { IGetBlogs, IPostBlogs, IPutBlogs } from "./schema";
 import { IPathParamWithID } from "@functions/common/schema";
 import { deleteBlog, getBlogById, getBlogs, postBlogs, putBlogs } from "./service";
+import { objectIsEmpty } from "@functions/utils/functions";
 
 export const getBlogsHandler = async (event: IGetBlogs) => {
   try {
@@ -39,7 +40,7 @@ export const getBlogByIdHandler = async (event: IPathParamWithID) => {
 
   try {
     const data = await getBlogById(id);
-    if (!data) {
+    if (objectIsEmpty(data)) {
       return JSONResponses.notFound({ message: "The requested blog could not be found." });
     }
     return JSONResponses.ok(data);
@@ -54,7 +55,7 @@ export const deleteBlogHandler = async (event: IPathParamWithID) => {
 
   try {
     const data = await deleteBlog(id);
-    if (!data) {
+    if (objectIsEmpty(data)) {
       return JSONResponses.notFound({ message: "The requested blog could not be found." });
     }
     return JSONResponses.ok(data);

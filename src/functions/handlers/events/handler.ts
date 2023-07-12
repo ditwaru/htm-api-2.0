@@ -8,6 +8,7 @@ import {
   postCalendarEvent,
   putCalendarEvent,
 } from "./service";
+import { objectIsEmpty } from "@functions/utils/functions";
 
 export const getCalendarEventsHandler = async (event: IGetCalendarEvents) => {
   try {
@@ -46,7 +47,7 @@ export const getCalendarEventByIdHandler = async (event: IPathParamWithID) => {
   try {
     const data = await getCalendarEventById(id);
     // todo this and blogs double check the notfound method is working
-    if (!data) {
+    if (objectIsEmpty(data)) {
       return JSONResponses.notFound({ message: "The requested event could not be found." });
     }
     return JSONResponses.ok(data);
@@ -60,7 +61,7 @@ export const deleteCalendarEventHandler = async (event: IPathParamWithID) => {
   const { id } = event.pathParameters;
   try {
     const data = await deleteCalendarEvent(id);
-    if (!data) {
+    if (objectIsEmpty(data)) {
       return JSONResponses.notFound({ message: "The requested event could not be found." });
     }
     return JSONResponses.ok(data);
