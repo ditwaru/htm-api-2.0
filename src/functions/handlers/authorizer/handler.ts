@@ -27,6 +27,6 @@ export const validateJWTHandler = async (event: IValidateJWT) => {
     return JSONResponses.ok();
   } catch (err) {
     console.error(err);
-    return JSONResponses.forbidden("owo");
+    return JSONResponses.forbidden("Permission not granted for this resource.");
   }
 };
